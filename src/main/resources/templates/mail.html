@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>邮件列表</title>
+</head>
+<body>
+
+<#if error??>
+${error}
+</#if>
+
+<table class="table">
+    <caption>Inbox</caption>
+    <thead>
+    <tr>
+        <th><span class="glyphicon glyphicon-envelope"></span></th>
+        <th>From</th>
+        <th>Subject</th>
+        <th>Received</th>
+        <th>Preview</th>
+    </tr>
+    </thead>
+    <tbody>
+    <#list messages as message>
+        <tr>
+            <td>
+                <#if !message.isRead>
+                    <span class="glyphicon glyphicon-envelope"></span>
+                </#if>
+            </td>
+            <td>${message.from.emailAddress.name}</td>
+            <td>${message.subject}"</td>
+            <td>${message.receivedDateTime?string('yyyy-MM-dd hh:mm:ss')}</td>
+            <td>${message.bodyPreview}"</td>
+        </tr>
+    </#list>
+
+    </tbody>
+</table>
+</body>
+</html>

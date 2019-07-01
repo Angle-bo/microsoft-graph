@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>认证返回</title>
+</head>
+<body>
+
+<#if error??>
+${error}
+</#if>
+
+userName: ${userName}
+
+userTenantId: ${userTenantId}
+
+<#if userPrincipalName??>
+userPrincipalName: ${userPrincipalName}
+</#if>
+
+
+</body>
+</html>

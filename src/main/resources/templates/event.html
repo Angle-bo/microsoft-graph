@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>返回消息</title>
+</head>
+<body>
+
+<#if error??>
+${error}
+</#if>
+
+<#if event??>
+context: ${event.context}
+etag: ${event.etag}
+id: ${event.id}
+createdDateTime: ${event.createdDateTime?string('yyyy-MM-dd hh:mm:ss')}
+</#if>
+
+</body>
+</html>

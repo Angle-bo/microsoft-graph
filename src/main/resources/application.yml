@@ -1,0 +1,10 @@
+spring:
+  freemarker:
+    suffix: .html
+    request-context-attribute: request
+    charset: UTF-8
+
+microsof-tgraph:
+  appId: a939a265-6aa7-469e-8b7a-2b3285336735
+  appPassword: -:jRe*SQW2C[kqBRpPmAY3uahHR0EwB3
+  redirectUrl: http://localhost:8080/authorize
