@@ -1,4 +1,18 @@
 spring:
+  mail:
+    default-encoding: UTF-8
+    host: smtp.office365.com
+    port: 587
+    password: xxxxx
+    username: g867030436@outlook.com
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true #授权
+          starttls:
+            enable: true
+            required: true
   freemarker:
     suffix: .html
     request-context-attribute: request
