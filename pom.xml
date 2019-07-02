@@ -17,9 +17,9 @@
     <properties>
         <java.version>1.8</java.version>
         <fastjson.version>1.2.46</fastjson.version>
-        <jackson.version>2.7.4</jackson.version>
-        <retrofit2.version>2.0.2</retrofit2.version>
-        <okhttp3.version>3.2.0</okhttp3.version>
+        <jackson.version>2.9.9</jackson.version>
+        <retrofit2.version>2.6.0</retrofit2.version>
+        <okhttp3.version>3.14.2</okhttp3.version>
     </properties>
 
     <dependencies>
@@ -75,6 +75,7 @@
             <artifactId>logging-interceptor</artifactId>
             <version>${okhttp3.version}</version>
         </dependency>
+
     </dependencies>
 
     <build>
