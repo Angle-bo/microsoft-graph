@@ -1,12 +1,15 @@
 package com.luobo.microsoftgraph.web;
 
 import com.alibaba.fastjson.JSON;
-import com.luobo.microsoftgraph.entity.*;
-import com.luobo.microsoftgraph.service.OutlookService;
 import com.luobo.microsoftgraph.utils.AuthHelper;
 import com.luobo.microsoftgraph.utils.DateUtil;
-import com.luobo.microsoftgraph.utils.OutlookServiceBuilder;
-import okhttp3.RequestBody;
+import com.microsoft.graph.models.extensions.*;
+import com.microsoft.graph.requests.extensions.IEventCollectionRequestBuilder;
+import com.microsoft.graph.requests.extensions.IMessageCollectionPage;
+import com.microsoft.graph.requests.extensions.IMessageCollectionRequest;
+import com.microsoft.graph.requests.extensions.IMessageCollectionRequestBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,9 +21,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 
 @Controller
@@ -29,9 +30,7 @@ public class IndexController {
     @Autowired
     private AuthHelper authHelper;
 
-    @Autowired
-    private OutlookServiceBuilder outlookServiceBuilder;
-
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @GetMapping("/")
     public String index(Model model, HttpServletRequest request) {
@@ -69,36 +68,13 @@ public class IndexController {
             @RequestParam("id_token") String idToken,
             @RequestParam("state") UUID state,
             HttpServletRequest request,Model model) {
-        // Get the expected state value from the session
+
         HttpSession session = request.getSession();
-        UUID expectedState = (UUID) session.getAttribute("expected_state");
-        UUID expectedNonce = (UUID) session.getAttribute("expected_nonce");
-
-        // Make sure that the state query parameter returned matches
-        // the expected state
-        if (state.equals(expectedState)) {
-            IdToken idTokenObj = IdToken.parseEncodedToken(idToken, expectedNonce.toString());
-
-            if (idTokenObj != null) {
-                TokenResponse tokenResponse = authHelper.getTokenFromAuthCode(code, idTokenObj.getTenantId());
-                session.setAttribute("tokens", tokenResponse);
-                session.setAttribute("userConnected", true);
-                session.setAttribute("userName", idTokenObj.getName());
-                session.setAttribute("userTenantId", idTokenObj.getTenantId());
-                try {
-                    OutlookService outlookService = outlookServiceBuilder.getOutlookService(tokenResponse.getAccessToken(), null);
-                    OutlookUser user = outlookService.getCurrentUser().execute().body();
-                    session.setAttribute("userPrincipalName", user.getUserPrincipalName());
-                }catch (IOException e){
-                    session.setAttribute("error", e.getMessage());
-                }
-            } else {
-                session.setAttribute("error", "ID token failed validation.");
-            }
-        }
-        else {
-            session.setAttribute("error", "Unexpected state returned from authority.");
-        }
+        IGraphServiceClient graphClient = authHelper.getAuthorizationCodeProvider(code);
+        session.setAttribute("graphClient",graphClient);
+        User user = graphClient.me().buildRequest().get();
+        session.setAttribute("displayName", user.displayName);
+        session.setAttribute("userPrincipalName", user.userPrincipalName);
         return "authorize";
     }
 
@@ -112,40 +88,16 @@ public class IndexController {
     @RequestMapping("/mail")
     public String mail(Model model, HttpServletRequest request, RedirectAttributes redirectAttributes) {
         HttpSession session = request.getSession();
-        TokenResponse tokens = (TokenResponse)session.getAttribute("tokens");
-        if (tokens == null) {
+        IGraphServiceClient graphClient = (IGraphServiceClient) session.getAttribute("graphClient");
+        if (graphClient == null) {
             // No tokens in session, user needs to sign in
             redirectAttributes.addFlashAttribute("error", "Please sign in to continue.");
             return "redirect:/";
         }
-
-        String tenantId = (String)session.getAttribute("userTenantId");
-
-        tokens = authHelper.ensureTokens(tokens, tenantId);
-
-        String email = (String)session.getAttribute("userEmail");
-
-        OutlookService outlookService = outlookServiceBuilder.getOutlookService(tokens.getAccessToken(), email);
-
-        // Retrieve messages from the inbox
-        String folder = "inbox";
-        // Sort by time received in descending order
-        String sort = "receivedDateTime DESC";
-        // Only return the properties we care about
-        String properties = "receivedDateTime,from,isRead,subject,bodyPreview";
-        // Return at most 10 messages
-        Integer maxResults = 10;
-
-        try {
-            PagedResult<Message> messages = outlookService.getMessages(
-                    folder, sort, properties, maxResults)
-                    .execute().body();
-            model.addAttribute("messages", messages.getValue());
-        } catch (IOException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/";
-        }
-
+        IMessageCollectionRequestBuilder messages = graphClient.me().messages();
+        IMessageCollectionPage iMessageCollectionPage = messages.buildRequest().get();
+        List<Message> currentPage = iMessageCollectionPage.getCurrentPage();
+        model.addAttribute("messages", currentPage);
         return "mail";
     }
 
@@ -159,41 +111,24 @@ public class IndexController {
     @RequestMapping("/calendarsReadWrite")
     public String calendarsReadWrite(Model model, HttpServletRequest request, RedirectAttributes redirectAttributes) {
         HttpSession session = request.getSession();
-        TokenResponse tokens = (TokenResponse)session.getAttribute("tokens");
-        if (tokens == null) {
+        IGraphServiceClient graphClient = (IGraphServiceClient) session.getAttribute("graphClient");
+        if (graphClient == null) {
             // No tokens in session, user needs to sign in
             redirectAttributes.addFlashAttribute("error", "Please sign in to continue.");
             return "redirect:/";
         }
-
-        String tenantId = (String)session.getAttribute("userTenantId");
-
-        tokens = authHelper.ensureTokens(tokens, tenantId);
-
-        String email = (String)session.getAttribute("userEmail");
-
-        OutlookService outlookService = outlookServiceBuilder.getOutlookService(tokens.getAccessToken(), email);
-
-        try {
-            Map<String,Object> start= new HashMap<>(2);
-            start.put("dateTime", DateUtil.dfTZ(DateUtil.plusHours(2)));
-            start.put("timeZone","UTC");
-            Map<String,Object> end= new HashMap<>(2);
-            end.put("dateTime",DateUtil.dfTZ(DateUtil.plusHours(3)));
-            end.put("timeZone","UTC");
-            Map<String,Object> json=new HashMap<>(3);
-            json.put("subject","这是测试");
-            json.put("start",start);
-            json.put("end",end);
-
-            RequestBody body=RequestBody.create(okhttp3.MediaType.parse("application/json;charset=UTF-8"), JSON.toJSONString(json));
-            Event event=outlookService.calendarsReadWrite(body) .execute().body();
-            model.addAttribute("event",event);
-        } catch (IOException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/";
-        }
-
+        IEventCollectionRequestBuilder events = graphClient.me().events();
+        Event event=new Event();
+        event.subject="这是测试";
+        DateTimeTimeZone start=new DateTimeTimeZone();
+        start.dateTime=DateUtil.dfTZ(DateUtil.plusHours(2));
+        start.oDataType="UTC+8";
+        event.start=start;
+        DateTimeTimeZone end=new DateTimeTimeZone();
+        end.dateTime=DateUtil.dfTZ(DateUtil.plusHours(3));
+        end.oDataType="UTC+8";
+        Event post = events.buildRequest().post(event);
+        model.addAttribute("event", post);
         return "event";
     }
 

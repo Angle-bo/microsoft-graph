@@ -11,10 +11,9 @@ ${error}
 </#if>
 
 <#if event??>
-context: ${event.context}
-etag: ${event.etag}
-id: ${event.id}
-createdDateTime: ${event.createdDateTime?string('yyyy-MM-dd hh:mm:ss')}
+subject: ${event.subject}
+startDateTime: ${event.start.dateTime?string('yyyy-MM-dd hh:mm:ss')}
+endDateTime: ${event.end.dateTime?string('yyyy-MM-dd hh:mm:ss')}
 </#if>
 
 </body>

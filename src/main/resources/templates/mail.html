@@ -25,14 +25,30 @@ ${error}
     <#list messages as message>
         <tr>
             <td>
-                <#if !message.isRead>
+                <#if message.isRead??>
                     <span class="glyphicon glyphicon-envelope"></span>
                 </#if>
             </td>
-            <td>${message.from.emailAddress.name}</td>
-            <td>${message.subject}"</td>
-            <td>${message.receivedDateTime?string('yyyy-MM-dd hh:mm:ss')}</td>
-            <td>${message.bodyPreview}"</td>
+            <td>
+                <#if message.from??>
+                    ${message.from.emailAddress.name}
+                </#if>
+            </td>
+            <td>
+                <#if message.subject??>
+                    ${message.subject}
+                </#if>
+            </td>
+            <td>
+                <#if message.receivedDateTime??>
+                    ${message.receivedDateTime?string('yyyy-MM-dd hh:mm:ss')}
+                 </#if>
+            </td>
+            <td>
+                <#if message.bodyPreview??>
+                    ${message.bodyPreview}
+                </#if>
+            </td>
         </tr>
     </#list>
 
