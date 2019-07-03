@@ -122,11 +122,12 @@ public class IndexController {
         event.subject="这是测试";
         DateTimeTimeZone start=new DateTimeTimeZone();
         start.dateTime=DateUtil.dfTZ(DateUtil.plusHours(2));
-        start.oDataType="UTC+8";
+        start.timeZone="UTC+8";
         event.start=start;
         DateTimeTimeZone end=new DateTimeTimeZone();
         end.dateTime=DateUtil.dfTZ(DateUtil.plusHours(3));
-        end.oDataType="UTC+8";
+        end.timeZone="UTC+8";
+        event.end=end;
         Event post = events.buildRequest().post(event);
         model.addAttribute("event", post);
         return "event";
