@@ -1,12 +1,10 @@
 package com.luobo.microsoftgraph.web;
 
-import com.alibaba.fastjson.JSON;
 import com.luobo.microsoftgraph.utils.AuthHelper;
 import com.luobo.microsoftgraph.utils.DateUtil;
 import com.microsoft.graph.models.extensions.*;
 import com.microsoft.graph.requests.extensions.IEventCollectionRequestBuilder;
 import com.microsoft.graph.requests.extensions.IMessageCollectionPage;
-import com.microsoft.graph.requests.extensions.IMessageCollectionRequest;
 import com.microsoft.graph.requests.extensions.IMessageCollectionRequestBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -11,9 +11,9 @@ ${error}
 </#if>
 
 <#if event??>
-subject: ${event.subject}
-startDateTime: ${event.start.dateTime?string('yyyy-MM-dd hh:mm:ss')}
-endDateTime: ${event.end.dateTime?string('yyyy-MM-dd hh:mm:ss')}
+subject: ${event.rawObject.subject}
+startDateTime: ${event.rawObject.start.dateTime}
+endDateTime: ${event.rawObject.end.dateTime}
 </#if>
 
 </body>
