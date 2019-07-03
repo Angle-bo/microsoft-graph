@@ -1,6 +1,6 @@
 # microsoft-graph
 
-**msgraph-sdk-java 1.5.0-SNAPSHOT使用**
+**Microsoft Graph REST API 接口调用**
 
 #### 其它分支
 使用msgraph-sdk-java请切换到[sdk分支](https://github.com/Angle-bo/microsoft-graph/tree/sdk)
